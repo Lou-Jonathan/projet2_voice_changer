@@ -10,6 +10,7 @@
     - Pydub (Speech-To-Text)
     - Module Python VLC (Lecture Audio)
     - Tkinter (Interface Graphique)
+    - PyAudio (Pour prendre le micro de l'utilisateur : http://people.csail.mit.edu/hubert/pyaudio/#downloads)
 
 ## Répartition des tâches pour la première semaine
 
@@ -22,5 +23,9 @@
 ### Bernard
 
 - Utiliser SpeechRecognition pour enregistrer un clip audio de l'utilisateur.
+  - Trouver le micro par défaut de l'utilisateur (En utilisant PyAudio)
+  - Commencer l'enregistrement de l'audio avec SpeechRecognition. (https://realpython.com/python-speech-recognition/)
+  - Arrêter l'enregistrement de l'audio d'un moyen quelconque.
+  - Faire un HUD pour fermer enregistrer l'audio.
 - Utiliser Pydub pour transformer le clip audio en texte.
 - Créer une interface graphique comprenant un bouton pour enregistrer et jouer, ainsi que des champs d'entrée pour modifier les paramètres des requêtes à l'API.

@@ -26,6 +26,13 @@
   - Trouver le micro par défaut de l'utilisateur (En utilisant PyAudio)
   - Commencer l'enregistrement de l'audio avec SpeechRecognition. (https://realpython.com/python-speech-recognition/)
   - Arrêter l'enregistrement de l'audio d'un moyen quelconque.
-  - Faire un HUD pour fermer enregistrer l'audio.
+- Faire un HUD pour fermer enregistrer l'audio.
+ - Trouver quel librairie utilisé : Tkinter
+ - Trouver comment faire des boutons et, si possible, avec des icons. (https://stackoverflow.com/questions/39054156/tkinter-custom-create-buttons et https://www.pythontutorial.net/tkinter/tkinter-button/) 
+  Erreurs rencontrer : 
+   - L'image est trop gros.
+   - Tkinter freeze quand l'enregistrement commence. 
+  Solutions trouvés : 
+   - Pour que le tkinter ne freeze pas quand il lance l'enregistrement, j'ai fait un thread pour qu'il ne puisse pas être bloqué par ça.
 - Utiliser Pydub pour transformer le clip audio en texte.
 - Créer une interface graphique comprenant un bouton pour enregistrer et jouer, ainsi que des champs d'entrée pour modifier les paramètres des requêtes à l'API.

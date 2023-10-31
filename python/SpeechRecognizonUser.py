@@ -1,12 +1,14 @@
 import os
+from tkinter import *
 from tkinter import ttk
 import speech_recognition as sr
 import pyaudio
 import wave
 import tkinter as tk
 import threading
+from elevenlabs import voices, generate, play, Voice, VoiceSettings, set_api_key
 
-
+set_api_key("9067b87bb61456e68b587b6c037b1cd9")
 wf = None
 stream = None
 chunk = 1024  # Nombre de frames par bloc
@@ -17,7 +19,7 @@ p = pyaudio.PyAudio()
 en_cours = False
 racine = tk.Tk()
 progress = ttk.Progressbar(racine, length=300, mode='determinate')
-image_start = tk.PhotoImage(file="./images/Start-Button.png")
+image_start = tk.PhotoImage(file="python\images\Start-Button.png")
 recording_thread = None
 audio_thread = None
 can_read_audio = False
@@ -77,6 +79,11 @@ def graphic_interface():
     mic = get_default_mic()
     bouton_enregistrement = tk.Button(racine, image=image_start, command=lambda: start_recording_thread(mic['index']))
     bouton_arret_enregistrement = tk.Button(racine, text="Fin de l'enregistrement", command=stop_recording)
+    voice_menu = OptionMenu(racine, selected_voice, *data['name'])
+    transcribe_button = tk.Button(racine, text="Jouer Audio AI", command=play_audio)
+    label_stability = tk.Label(racine, text="Stabilité : ")
+    label_similarity = tk.Label(racine, text="Similarité : ")
+    label_style = tk.Label(racine, text="Style : ")
 
     def quitter():
         if not en_cours:
@@ -97,7 +104,16 @@ def graphic_interface():
     bouton_arret_enregistrement.grid(row=2, column=0, padx=(0, 10))
     bouton_joue_enregistrement.grid(row=3, column=0, padx=(0, 10))
     progress.grid(row=3, column=1, padx=(0, 10))
-    bouton_quitter.grid(row=4, column=0, padx=(0, 10))
+    voice_menu.grid(row=5, column=0, padx=(0, 10))
+    voice_menu.config(width=20)
+    slider_stability.grid(row=6, column=1, padx=(0, 10))
+    slider_similarity.grid(row=7, column=1, padx=(0, 10))
+    slider_style.grid(row=8, column=1, padx=(0, 10))
+    label_stability.grid(row=6, column=0, padx=(0, 10))
+    label_similarity.grid(row=7, column=0, padx=(0, 10))
+    label_style.grid(row=8, column=0, padx=(0, 10))
+    transcribe_button.grid(row=9, column=0, padx=(0, 10))
+    bouton_quitter.grid(row=10, column=0, padx=(0, 10))
     racine.mainloop()
 
 
@@ -152,5 +168,75 @@ def save_audio(frames):
     wf.close()
     can_read_audio = audio_file_exists()
 
+### Lou
+
+voices_list = voices()
+
+data = {
+    'name': [voice.name for voice in voices_list],
+}
+
+selected_voice = tk.StringVar()
+selected_voice.set(voices_list[0].name)
+slider_stability = ttk.Scale(
+    racine,
+    from_=0,
+    to=1,
+    orient='horizontal',
+)   
+slider_similarity = ttk.Scale(
+    racine,
+    from_=0,
+    to=1,
+    orient='horizontal',
+)
+slider_style = ttk.Scale(
+    racine,
+    from_=0,
+    to=1,
+    orient='horizontal',
+)
+
+def transcribe_audio():
+    global can_read_audio
+    if can_read_audio:
+        r = sr.Recognizer()
+        with sr.AudioFile('enregistrement.wav') as source:
+            audio = r.record(source)
+        try:
+            text = r.recognize_google(audio, language="fr-FR")
+            print("Vous avez dit: " + text)
+            return text
+        except sr.UnknownValueError:
+            print("Une erreur est survenue")
+        except sr.RequestError as e:
+            print("Une erreur est survenue")
+    else:
+        print("Vous ne pouvez pas transcrire un enregistrement quand il n'y a pas d'enregistrement.")
+
+def get_voice_id():
+    for voice in voices_list:
+        if voice.name == selected_voice.get():
+            return voice.voice_id
+
+def play_audio():
+    stability_value = float("%.2f" % slider_stability.get())
+    similarity_value = float("%.2f" % slider_similarity.get())
+    style_value = float("%.2f" % slider_style.get())
+
+    audio = generate(
+        text=transcribe_audio(),
+        voice=Voice(
+            voice_id=get_voice_id(),
+            settings=VoiceSettings(
+                stability=stability_value,
+                similarity_boost=similarity_value,
+                style=style_value,
+                use_speaker_boost=True
+            ),
+        ),
+        model="eleven_multilingual_v2"
+    )
+    play(audio)
 
 graphic_interface()

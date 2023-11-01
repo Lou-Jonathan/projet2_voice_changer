@@ -18,8 +18,9 @@ fs = 44100  # Fréquence d'échantillonnage (en Hz)
 p = pyaudio.PyAudio()
 en_cours = False
 racine = tk.Tk()
+bouton_joue_enregistrement = None
 progress = ttk.Progressbar(racine, length=300, mode='determinate')
-image_start = tk.PhotoImage(file="python\images\Start-Button.png")
+image_start = tk.PhotoImage(file="./images/Start-Button.png")
 recording_thread = None
 audio_thread = None
 can_read_audio = False
@@ -51,7 +52,12 @@ def play_sound():
 
 
 def audio_file_exists():
-    return os.path.isfile("enregistrement.wav")
+    global bouton_joue_enregistrement
+    print(os.path.isfile("enregistrement.wav"))
+    if os.path.isfile("enregistrement.wav"):
+        bouton_joue_enregistrement.config(state=tk.NORMAL)
+    else:
+        bouton_joue_enregistrement.config(state=tk.DISABLED)
 
 
 def update_progress():
@@ -75,10 +81,12 @@ def play_audio_in_thread():
 
 
 def graphic_interface():
-    global progress, en_cours
+    global progress, en_cours, bouton_joue_enregistrement
     mic = get_default_mic()
     bouton_enregistrement = tk.Button(racine, image=image_start, command=lambda: start_recording_thread(mic['index']))
     bouton_arret_enregistrement = tk.Button(racine, text="Fin de l'enregistrement", command=stop_recording)
+    bouton_joue_enregistrement = tk.Button(racine, text="Jouer Enregistrement", command=play_audio_in_thread,
+                                           state=tk.DISABLED)
     voice_menu = OptionMenu(racine, selected_voice, *data['name'])
     transcribe_button = tk.Button(racine, text="Jouer Audio AI", command=play_audio)
     label_stability = tk.Label(racine, text="Stabilité : ")
@@ -94,11 +102,6 @@ def graphic_interface():
             print("Vous ne pouvez pas quitter l'application quand il y a un enregistrement en cours.")
 
     bouton_quitter = tk.Button(racine, text="Quitter", command=quitter)
-
-    if audio_file_exists():
-        bouton_joue_enregistrement = tk.Button(racine, text="Jouer l'enregistrement", command=play_audio_in_thread)
-    else:
-        bouton_joue_enregistrement = tk.Button(racine, text="Jouer l'enregistrement", state=tk.DISABLED)
 
     bouton_enregistrement.grid(row=0, column=0, padx=(0, 10))
     bouton_arret_enregistrement.grid(row=2, column=0, padx=(0, 10))
@@ -130,6 +133,7 @@ def stop_recording():
         if recording_thread.is_alive():
             recording_thread.join()
             recording_thread = None
+            audio_file_exists()
     except AttributeError:
         print("Vous ne pouvez pas arêter un enregistrement quand il n'y a pas d'enregistrement.")
 
@@ -155,7 +159,8 @@ def record_audio(microphone_index):
         stream.stop_stream()
         print("Enregistrement terminé !")
         save_audio(frames)
-    print("Vous ne pouvez pas partir un enregistrement quand il y a déjà un enregistrement en cours.")
+    else:
+        print("Vous ne pouvez pas partir un enregistrement quand il y a déjà un enregistrement en cours.")
 
 
 def save_audio(frames):
@@ -166,7 +171,6 @@ def save_audio(frames):
     wf.setframerate(fs)
     wf.writeframes(b''.join(frames))
     wf.close()
-    can_read_audio = audio_file_exists()
 
 ### Lou
 
